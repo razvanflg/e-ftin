@@ -1,10 +1,1 @@
-{% extends "base.html" %}{% block content %}<h2>Adauga ruta - Sofer</h2><form method="post" class="card"><label>De unde pleci?</label><input name="de_unde" required placeholder="Moreni"><label>Pana unde?</label><input name="pana_unde" required placeholder="Râmnicu Vâlcea"><label>Data</label><input name="data_ruta" type="date" required><label>Ora</label><input name="ora" type="time" required><label>Locuri libere</label><select name="locuri"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><label>Detalii</label><textarea name="detalii" placeholder="Trec prin Titu, Potlogi"></textarea><div class="ad-banner" style="margin-bottom:12px"><span class="ad-label">Reclama Monetag - Formular</span><div id="monetag-form">Banner in formular - castigi cand omul completeaza</div></div><button class="btn" type="submit">Publica ruta</button></form>{% endblock %}
-<script>
-document.querySelector('form').addEventListener('submit', function(e){
-  if(typeof showInterstitialAd === 'function'){
-    e.preventDefault();
-    const form = this;
-    showInterstitialAd(function(){ form.submit(); });
-  }
-});
-</script>
+{% extends "base.html" %}{% block content %}<h2>Adauga ruta - Sofer</h2><form method="post" class="card"><label>De unde pleci?</label><input name="de_unde" required placeholder="Moreni"><label>Pana unde?</label><input name="pana_unde" required placeholder="Râmnicu Vâlcea"><label>Data</label><input name="data_ruta" type="date" required><label>Ora</label><input name="ora" type="time" required><label>Locuri libere</label><select name="locuri"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select><label>Detalii</label><textarea name="detalii" placeholder="Trec prin Titu, Potlogi"></textarea><button class="btn" type="submit">Publica ruta</button></form>{% endblock %}
