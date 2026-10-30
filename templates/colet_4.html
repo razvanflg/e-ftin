@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}<h2>Posteaza colet - Expeditor</h2><form method="post" class="card"><label>De unde?</label><input name="de_unde" required placeholder="Titu"><label>Pana unde?</label><input name="pana_unde" required placeholder="Potlogi"><label>Ce contine?</label><input name="ce_contine" required placeholder="Acte, chei"><label>Tip</label><select name="tip"><option value="colet">Colet (max 5kg)</option><option value="plic">Plic 12 lei fix</option></select><label>Greutate</label><input name="greutate" placeholder="1kg"><label>Telefon contact</label><input name="telefon_contact" required placeholder="07xx xxx xxx"><div style="background:#f0fdf4;padding:12px;border-radius:12px;margin:12px 0"><b>Pret:</b> Plic 12 lei fix, Colet 10 lei + 0.4 lei/km max 30 lei.</div><div class="ad-banner" style="margin-bottom:12px"><span class="ad-label">Reclama Monetag - Formular</span><div id="monetag-form">Banner in formular - castigi cand omul completeaza</div></div><button class="btn" type="submit">Posteaza colet</button></form>{% endblock %}
+<script>
+document.querySelector('form').addEventListener('submit', function(e){
+  if(typeof showInterstitialAd === 'function'){
+    e.preventDefault();
+    const form = this;
+    showInterstitialAd(function(){ form.submit(); });
+  }
+});
+</script>
