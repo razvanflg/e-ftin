@@ -1,26 +1,10 @@
-
-<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><title>Admin e-ftin</title><style>body{font-family:Arial;padding:20px} table{border-collapse:collapse;width:100%;margin:10px 0} th,td{border:1px solid #ccc;padding:6px;font-size:12px} th{background:#eee} .wa{background:#25D366;color:#fff;padding:4px 8px;border-radius:6px;text-decoration:none;font-size:11px}</style></head><body>
-<h2>Admin e-ftin.ro - conexiuni WhatsApp gratis</h2>
-<h3>Soferi inscrisi - click pentru WhatsApp</h3>
-<table><tr><th>ID</th><th>Nume</th><th>Telefon + WhatsApp</th><th>Ruta</th><th>Judete</th><th>Locuri</th><th>Data</th></tr>
-{% for s in soferi %}
-<tr>
-<td>{{s[0]}}</td><td>{{s[1]}}</td>
-<td><a class="wa" href="https://wa.me/{{s[2]|replace(' ', '')|replace('+','')|replace('-','')}}?text=Buna%20{{s[1]}}!%20Am%20vazut%20ca%20esti%20sofer%20e-ftin.ro%20pe%20ruta%20{{s[3]|urlencode}}.%20Am%20un%20colet%20pe%20ruta%20ta." target="_blank">📱 {{s[2]}}</a></td>
-<td>{{s[3]}}</td><td>{{s[4]}}</td><td>{{s[5]}}</td><td>{{s[6]}}</td>
-</tr>
-{% endfor %}
-</table>
-<h3>Colete cerute - contacteaza clientul pe WhatsApp</h3>
-<table><tr><th>ID</th><th>Nume</th><th>Telefon client</th><th>De unde</th><th>Pana unde</th><th>Greutate</th><th>Pret</th><th>Data</th></tr>
-{% for c in colete %}
-<tr>
-<td>{{c[0]}}</td><td>{{c[1]}}</td>
-<td><a class="wa" href="https://wa.me/{{c[2]|replace(' ', '')|replace('+','')|replace('-','')}}?text=Buna%20{{c[1]}}!%20Sunt%20sofer%20e-ftin.ro%20pe%20ruta%20{{c[3]}}%20-%3E%20{{c[4]}}.%20Pot%20lua%20coletul%20tau%20de%20{{c[5]}}kg%20pentru%20{{c[6]}}.%20Cand%20il%20predam%3F" target="_blank">📱 {{c[2]}}</a></td>
-<td>{{c[3]}}</td><td>{{c[4]}}</td><td>{{c[5]}}</td><td>{{c[6]}}</td><td>{{c[7]}}</td>
-</tr>
-{% endfor %}
-</table>
-<p><b>Cum functioneaza WhatsApp gratis:</b><br>1. Click pe numarul verde deschide WhatsApp direct<br>2. Mesajul e deja scris automat<br>3. Clientul si soferul vorbesc direct, cash la predare, tu nu atingi banii<br>4. Dupa livrare, soferul face poza si o trimite pe WhatsApp ca dovada</p>
-<p><a href="/">Acasa</a></p>
-</body></html>
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin - e-ftin.ro</h2>
+<h3>Users ({{users|length}})</h3>
+{% for u in users %}<div class="card">{{u['id']}} - {{u['nume']}} - {{u['telefon']}} - {{u['email']}} - {{u['rol']}} - {{u['colete_duse']}} colete</div>{% endfor %}
+<h3>Rute ({{rute|length}})</h3>
+{% for r in rute %}<div class="card">{{r['de_unde']}}→{{r['pana_unde']}} - {{r['nume']}}</div>{% endfor %}
+<h3>Colete ({{colete|length}})</h3>
+{% for c in colete %}<div class="card">{{c['de_unde']}}→{{c['pana_unde']}} - {{c['pret']}} lei - {{c['status']}} - {{c['nume']}}</div>{% endfor %}
+{% endblock %}

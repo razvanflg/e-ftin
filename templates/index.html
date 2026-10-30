@@ -1,90 +1,49 @@
-<!DOCTYPE html>
-<html lang="ro">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-<title>e-ftin.ro - Colete mici pe drumul tau</title>
-<link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#16a34a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="e-ftin.ro">
-<link rel="apple-touch-icon" href="/static/logo.png">
-<link rel="icon" href="/static/logo.png">
-<style>
-*{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif;margin:0;background:#f7f7f5;color:#111}
-.header{background:#fff;border-bottom:1px solid #eee;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
-.logo img{height:42px}
-@media(min-width:768px){.logo img{height:55px}}
-.btn{display:inline-block;padding:11px 16px;border-radius:12px;text-decoration:none;font-weight:700;margin:4px;font-size:14px}
-.btn-green{background:#16a34a;color:#fff} .btn-white{background:#fff;border:1px solid #ddd;color:#111} .btn-black{background:#111;color:#fff}
-.hero{padding:28px 16px 20px;text-align:center;background:linear-gradient(180deg,#fff,#e8f5e9)}
-.hero h1{font-size:28px;line-height:1.15;margin:10px 0;font-weight:900}
-@media(min-width:768px){.hero h1{font-size:44px}}
-.hero h1 span{color:#16a34a}
-.hero p{font-size:15px;line-height:1.5;color:#444}
-.badge{display:inline-block;background:#e8f5e9;color:#16a34a;padding:6px 10px;border-radius:20px;font-size:12px;margin:3px;font-weight:600}
-.grid{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;max-width:1100px;margin:auto}
-@media(min-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1024px){.grid{grid-template-columns:repeat(4,1fr)}}
-.card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px}
-.price{font-size:26px;font-weight:900;color:#16a34a}
-.install-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;padding:14px 16px;z-index:999;justify-content:space-between;gap:12px}
-.install-banner.show{display:flex}
-@media(min-width:768px){.install-banner{bottom:20px;left:50%;transform:translateX(-50%);border-radius:14px;max-width:520px}}
-footer{padding:24px 16px;text-align:center;color:#777;font-size:13px}
-input,select,textarea{font-size:16px!important}
-</style>
-</head>
-<body>
-<div class="header">
-<div class="logo"><a href="/"><img src="/static/logo.png" alt="e-ftin.ro"></a></div>
-<div><a href="/inscrie-sofer" class="btn btn-white">Sofer</a><a href="/trimite-colet" class="btn btn-green">Trimite</a></div>
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align:center;padding:24px 0">
+<h1 style="font-size:32px;margin:8px 0">Colete mici, <span style="color:#16a34a">pe drumul tau.</span></h1>
+<p>Max 5kg, 60x40x40cm, fara abatere. Mai ieftin decat curierul.</p>
+<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+<span style="background:#f0fdf4;padding:6px 10px;border-radius:999px">10 lei + 0,40 lei/km - max 30 lei</span>
+<span style="background:#f0fdf4;padding:6px 10px;border-radius:999px">Plic 12 lei fix</span>
+<span style="background:#f0fdf4;padding:6px 10px;border-radius:999px">💚 100% soferului</span>
 </div>
-<div class="hero">
-<h1>Colete mici, <span>pe drumul tau.</span></h1>
-<p>Pentru toti soferii din Romania cu loc liber pe bancheta.<br>Max 5kg, 60x40x40cm, fara abatere. Mai ieftin decat curierul.</p>
-<p><span class="badge">10 lei + 0,40 lei/km - max 30 lei</span> <span class="badge">Plic 12 lei fix</span> <span class="badge">💚 100% soferului</span></p>
-<div style="margin-top:18px">
-<a href="/inscrie-sofer" class="btn btn-green">Pune-ti ruta gratis</a>
-<a href="/trimite-colet" class="btn btn-white">Cere transport ieftin</a><br>
-<button id="installBtnHero" onclick="installApp()" style="display:none;margin-top:10px" class="btn btn-black">📲 Instaleaza aplicatia</button>
+<div style="margin-top:16px">
+{% if current_user.is_authenticated %}
+<a href="/sofer" class="btn">Pune-ti ruta gratis</a>
+<a href="/colet" class="btn btn-outline">Cere transport ieftin</a>
+{% else %}
+<a href="/register" class="btn">Pune-ti ruta gratis</a>
+<a href="/register" class="btn btn-outline">Cere transport ieftin</a>
+{% endif %}
 </div>
-<p style="font-size:12px;color:#666;margin-top:12px">Instaleaza direct de pe e-ftin.ro - fara App Store, fara Google Play. iPhone, Android, laptop.</p>
 </div>
+
 <div class="grid">
-<div class="card"><h3>🚐 Cum functioneaza?</h3><p><b>Sofer:</b> Iti pui ruta zilnica.<br><b>Client:</b> Posteaza coletul.<br><b>Platforma:</b> Va conecteaza pe 【entity-WhatsApp¦canonical_name=WhatsApp】 direct.</p></div>
-<div class="card"><h3>💰 Cat costa?</h3><p class="price">12-30 lei</p><p>Plic: 12 lei fix<br>Colet: 10 lei + 0.4 lei/km max 30 lei<br>Ex: Titu-Potlogi 16 lei, Moreni-Targoviste 20 lei, Ramnicu 30 lei</p><p style="background:#f0fdf4;border:1px dashed #16a34a;border-radius:10px;padding:10px;font-size:13px">💚 Platforma e gratis. Soferul pastreaza 100%. Bacsis voluntar 2-3 lei ca sa ramana gratis.</p></div>
-<div class="card"><h3>📦 Reguli clare</h3><p>✔ Max 5kg<br>✔ Fara perisabile / fragile / ilegale<br>✔ Fara abatere<br>✔ Poza la preluare + predare</p></div>
-<div class="card"><h3>🇷🇴 Unde functioneaza?</h3><p>Toata Romania, 41 judete. Ideal sate fara easybox: Slatioara, Baleni, Ulmi, Corbii Mari, Racari, Potlogi etc.</p></div>
+<div class="card">
+<h3>🚐 Cum functioneaza?</h3>
+<p><b>Sofer:</b> Iti pui ruta zilnica.<br><b>Client:</b> Posteaza coletul.<br><b>Platforma:</b> Va conecteaza pe WhatsApp direct.</p>
+{% if rute %}
+<h4>Rute azi:</h4>
+{% for r in rute %}<div class="card match"><b>{{r['de_unde']}} → {{r['pana_unde']}}</b><br>{{r['nume']}} - {{r['ora']}}</div>{% endfor %}
+{% endif %}
 </div>
-<div style="max-width:800px;margin:18px auto;padding:18px;background:#fff;border:2px solid #16a34a;border-radius:16px;text-align:center">
-<h3>💚 Vrei ca e-ftin.ro sa ramana gratis?</h3>
-<p style="font-size:14px">Soferul pastreaza 100%. Daca te-a ajutat, lasa bacsis 3 lei.</p>
-<a href="https://revolut.me/REPLACE_ME/3RON" class="btn btn-green" style="background:#25D366">💸 Bacsis 3 lei 【entity-Revolut¦canonical_name=Revolut】</a>
+<div class="card">
+<h3>💰 Cat costa?</h3>
+<p style="font-size:24px;color:#16a34a;font-weight:800">12-30 lei</p>
+<p>Plic: 12 lei fix<br>Colet: 10 lei + 0.4 lei/km max 30 lei<br>Ex: Titu-Potlogi 16 lei</p>
 </div>
-<div style="max-width:800px;margin:18px auto;padding:18px;background:#111;color:#fff;border-radius:16px;text-align:center">
-<h3>📲 Descarca aplicatia direct de pe e-ftin.ro</h3>
-<p style="font-size:13px;opacity:.8">Fara App Store, fara Google Play. 1 click si apare pe ecran ca aplicatie normala.</p>
-<div style="text-align:left;font-size:13px;display:grid;gap:8px;margin-top:12px">
-<div style="background:#222;padding:10px;border-radius:10px"><b>iPhone:</b> Deschide in Safari -> Share (patrat cu sageata) -> Add to Home Screen</div>
-<div style="background:#222;padding:10px;border-radius:10px"><b>Android:</b> Chrome -> meniu ⋮ -> Instaleaza aplicatia / Add to Home Screen</div>
-<div style="background:#222;padding:10px;border-radius:10px"><b>Laptop:</b> Chrome/Edge -> iconita Instaleaza in bara de adrese</div>
+<div class="card">
+<h3>📦 Reguli clare</h3>
+<p>✔ Max 5kg<br>✔ Fara perisabile / fragile / ilegale<br>✔ Fara abatere<br>✔ Poza la preluare + predare</p>
 </div>
-</div>
-<footer>e-ftin.ro © 2026 | <a href="/admin">Admin</a> | 📱 PWA iOS/Android/Desktop</footer>
-<div id="installBanner" class="install-banner">
-<div><b>📲 Instaleaza e-ftin.ro</b><br><span style="font-size:12px;opacity:.8">Aplicatie directa, fara App Store</span></div>
-<div style="display:flex;gap:8px">
-<button onclick="document.getElementById('installBanner').classList.remove('show')" style="background:transparent;color:#fff;border:1px solid #444;padding:10px 12px;border-radius:10px">Mai tarziu</button>
-<button onclick="installApp()" style="background:#16a34a;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-weight:700">Instaleaza</button>
+<div class="card">
+<h3>🇷🇴 Unde functioneaza?</h3>
+<p>Toata Romania, 41 judete. Ideal sate fara easybox: Statioara, Baleni, Ulmi, Corbii Mari, Racari, Potlogi etc.</p>
+{% if colete %}
+<h4>Colete azi:</h4>
+{% for c in colete %}<div class="card match"><b>{{c['de_unde']}} → {{c['pana_unde']}}</b> - {{c['pret']}} lei<br>{{c['nume']}}</div>{% endfor %}
+{% endif %}
 </div>
 </div>
-<script>
-if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/static/sw.js')})}
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtnHero').style.display='inline-block';document.getElementById('installBanner').classList.add('show')});
-function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(c=>{if(c.outcome==='accepted'){document.getElementById('installBanner').classList.remove('show');document.getElementById('installBtnHero').style.display='none'}deferredPrompt=null})}else{alert('iPhone: Share -> Add to Home Screen\nAndroid: Meniu -> Instaleaza aplicatia')}}
-</script>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Profilul meu</h2>
+<form method="post" enctype="multipart/form-data" class="card">
+{% if user['poza'] %}<img src="/static/{{user['poza']}}" style="width:80px;height:80px;border-radius:50%;object-fit:cover">{% endif %}
+<label>Nume</label><input name="nume" value="{{user['nume']}}">
+<label>Telefon (logare cu telefon)</label><input name="telefon" value="{{user['telefon'] or ''}}">
+<label>Email (logare cu email)</label><input name="email" type="email" value="{{user['email'] or ''}}">
+<label>Poza de profil (optional)</label><input type="file" name="poza" accept="image/*">
+<label>Parola noua (lasa gol daca nu vrei sa schimbi)</label><input name="parola_noua" type="password" placeholder="Noua parola">
+<button class="btn" type="submit">Salveaza profilul</button>
+</form>
+{% endblock %}

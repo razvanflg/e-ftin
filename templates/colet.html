@@ -1,14 +1,16 @@
-
-<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Trimite colet ieftin</title>
-<style>body{font-family:Arial;padding:20px;max-width:500px;margin:auto} input{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:8px} button{background:#16a34a;color:#fff;padding:12px;border:none;border-radius:10px;width:100%;font-weight:700}</style>
-</head><body>
-<h2>Trimite colet mic ieftin</h2><p>Max 5kg, 60x40x40cm. Pret estimat: 10 lei + 0.4 lei/km, max 25 lei. Plic 12 lei.</p>
-<form method="post">
-<input name="nume" placeholder="Nume" required>
-<input name="telefon" placeholder="Telefon" required>
-<input name="de_unde" placeholder="De unde: ex: Ulmi, DB" required>
-<input name="pana_unde" placeholder="Până unde: ex: Titu, DB" required>
-<input name="greutate" placeholder="Greutate kg: ex: 0.3 pentru plic, 2 pentru colet" required>
-<button type="submit">Cere transport</button>
-</form><div style="margin-top:15px;padding:10px;background:#f0fdf4;border-radius:10px;font-size:13px">💚 Platforma e gratis, șoferul ia 100%. Dacă vrei să rămână gratis, poți lăsa un bacșiș voluntar de 3 lei pe <a href="https://revolut.me/TU_NUME_REVOLUT/3RON" target="_blank">Revolut</a> - opțional.</div><p><a href="/">← înapoi</a></p>
-</body></html>
+{% extends "base.html" %}
+{% block content %}
+<h2>Posteaza colet - Expeditor</h2>
+<form method="post" class="card">
+<label>De unde?</label><input name="de_unde" required placeholder="Ex: Titu">
+<label>Pana unde?</label><input name="pana_unde" required placeholder="Ex: Potlogi">
+<label>Ce contine? (fara fragile/perisabile)</label><input name="ce_contine" required placeholder="Ex: Acte, chei, incarcator">
+<label>Tip</label><select name="tip"><option value="colet">Colet (max 5kg, 60x40x40)</option><option value="plic">Plic (12 lei fix)</option></select>
+<label>Greutate aprox</label><input name="greutate" placeholder="Ex: 1kg">
+<label>Telefonul tau de contact (pt WhatsApp sofer)</label><input name="telefon_contact" required placeholder="07xx xxx xxx">
+<div style="background:#f0fdf4;padding:12px;border-radius:12px;margin:12px 0">
+<b>Pret automat:</b> Plic 12 lei fix. Colet 10 lei + 0,40 lei/km - max 30 lei plafonat. Soferul pastreaza 100%.
+</div>
+<button class="btn" type="submit">Posteaza colet - vezi soferi</button>
+</form>
+{% endblock %}
