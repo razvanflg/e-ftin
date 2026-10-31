@@ -1,14 +1,9 @@
 {% extends "base.html" %}{% block content %}
 <h2>Salut, {{current_user.nume}}! 👋</h2>
 
-<div class="ad-banner"><span class="ad-label">Reclama Monetag - Top Dashboard - 11451014</span>
-<script src="https://fpyf8.com/88/tag.min.js" data-zone="11451014" async data-cfasync="false"></script>
-</div>
-
 <div class="card" style="background:#f0fdf4;border:1px dashed #16a34a;text-align:center">
 <p style="margin:0 0 8px 0">💚 Iti place e-ftin.ro? Ajuta platforma sa ramana gratis si ieftina!</p>
-<a href="https://revolut.me/REPLACE_ME" target="_blank" class="btn-revolut">💸 Bacșiș 3 lei pe Revolut</a>
-<small style="display:block;margin-top:6px;color:#64748b">100% optional, doar daca vrei sa sustii</small>
+<a href="https://revolut.me/razvanflg" target="_blank" class="btn-revolut">💸 Bacșiș 3 lei pe Revolut</a>
 </div>
 
 <div class="grid">
@@ -23,7 +18,7 @@
 {% if r['activa'] %}<span style="color:green">● Activa</span>{% else %}Inactiva{% endif %}
 </div>
 {% else %}
-<p>Nu ai rute inca. Adauga prima ruta ca sa vezi colete pe drumul tau.</p>
+<p>Nu ai rute inca.</p>
 {% endfor %}
 
 <h3 style="margin-top:24px">📦 Colete care se potrivesc pe rutele tale ({{matches_for_me|length}})</h3>
@@ -32,10 +27,10 @@
 <b>MATCH!</b> Ruta ta {{m['ruta']['de_unde']}}→{{m['ruta']['pana_unde']}} se potriveste cu coletul:<br>
 <b>{{m['colet']['de_unde']}} → {{m['colet']['pana_unde']}}</b> - {{m['colet']['pret']}} lei<br>
 {{m['colet']['ce_contine']}} - Client: {{m['colet']['nume']}}<br>
-<a class="btn" href="https://wa.me/{{m['colet']['telefon_contact']|replace('+','')|replace(' ','')}}?text=Salut%2C%20sunt%20sofer%20e-ftin%20pe%20ruta%20{{m['ruta']['de_unde']}}-%3E{{m['ruta']['pana_unde']}}%20pentru%20coletul%20{{m['colet']['de_unde']}}-%3E{{m['colet']['pana_unde']}}">💬 Scrie pe WhatsApp</a>
+<a class="btn" href="https://wa.me/{{m['colet']['telefon_contact']|replace('+','')|replace(' ','')}}?text=Salut%2C%20sunt%20sofer%20e-ftin">💬 Scrie pe WhatsApp</a>
 </div>
 {% else %}
-<p>Niciun colet pe rutele tale momentan. Lasa ruta activa, clientii te vor gasi.</p>
+<p>Niciun colet pe rutele tale momentan.</p>
 {% endfor %}
 </div>
 
@@ -56,17 +51,18 @@
 <div class="card match">
 <b>Sofer gasit!</b> Pentru coletul tau {{s['colet']['de_unde']}}→{{s['colet']['pana_unde']}}:<br>
 <b>{{s['ruta']['de_unde']}} → {{s['ruta']['pana_unde']}}</b> - {{s['ruta']['nume']}} - {{s['ruta']['ora']}}<br>
-<a class="btn" href="https://wa.me/{{s['ruta']['telefon']|replace('+','')|replace(' ','')}}?text=Salut%2C%20am%20colet%20{{s['colet']['de_unde']}}-%3E{{s['colet']['pana_unde']}}%20pe%20ruta%20ta">💬 Contacteaza soferul pe WhatsApp</a>
+<a class="btn" href="https://wa.me/{{s['ruta']['telefon']|replace('+','')|replace(' ','')}}?text=Salut%2C%20am%20colet">💬 Contacteaza soferul</a>
 </div>
 {% else %}
-<p>Niciun sofer pe rutele tale acum. Lasa coletul postat, soferii il vor vedea.</p>
+<p>Niciun sofer pe rutele tale acum.</p>
 {% endfor %}
 </div>
 </div>
 
-<div class="ad-banner" style="margin-top:24px"><span class="ad-label">Reclama Monetag - Bottom Dashboard - 11452676 - AICI ERA POZA TA</span>
-<script src="https://fpyf8.com/88/tag.min.js" data-zone="11452676" async data-cfasync="false"></script>
-<div style="font-size:10px">🔽 Banner jos Dashboard - exact locul din poza ta - aici faci bani cand userul sta in Dashboard</div>
+<!-- BANNER BOTTOM DASHBOARD - ZONA 12158490 - AICI ERA POZA TA -->
+<div style="margin-top:24px;text-align:center;min-height:90px;background:#fff;border-radius:12px;padding:8px">
+<script>(function(s){s.dataset.zone='12158490',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<br><small style="font-size:10px;color:#16a34a">Banner jos Dashboard - din poza ta 17.07.36</small>
 </div>
 
 {% endblock %}
