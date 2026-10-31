@@ -1,250 +1,241 @@
-import os, re, secrets
+import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, request, redirect, url_for, flash, Response
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-import sqlite3
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "e-ftin-ro-secret-2026-razvan")
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
-ALLOWED_EXT = {'png','jpg','jpeg','webp'}
-
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'e-ftin-secret-2024')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eftin.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'eftin.db')
+# --- MODELE ---
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    parola = db.Column(db.String(200), nullable=False)
+    nume = db.Column(db.String(80))
+    telefon = db.Column(db.String(20))
+    rating_mediu = db.Column(db.Float, default=0.0)
+    nr_recenzii = db.Column(db.Integer, default=0)
 
-def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    return conn
+class RutaSofer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    plecare = db.Column(db.String(100), nullable=False)
+    sosire = db.Column(db.String(100), nullable=False)
+    data_ruta = db.Column(db.String(20))
+    ora = db.Column(db.String(20))
+    locuri = db.Column(db.Integer, default=3)
+    pret_per_km = db.Column(db.Float, default=0.4)
+    detalii = db.Column(db.Text)
+    activa = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='rute')
 
-def init_db():
-    try:
-        conn = get_db()
-        c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, nume TEXT NOT NULL, telefon TEXT, email TEXT, parola_hash TEXT NOT NULL, poza TEXT, rol TEXT DEFAULT 'ambele', data_creare TEXT, rating REAL DEFAULT 5.0, colete_duse INTEGER DEFAULT 0)")
-        c.execute("CREATE TABLE IF NOT EXISTS rute_sofer (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, de_unde TEXT, pana_unde TEXT, data_ruta TEXT, ora TEXT, locuri INTEGER DEFAULT 1, detalii TEXT, activa INTEGER DEFAULT 1)")
-        c.execute("CREATE TABLE IF NOT EXISTS colete (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, de_unde TEXT, pana_unde TEXT, ce_contine TEXT, tip TEXT DEFAULT 'colet', greutate TEXT, telefon_contact TEXT, pret INTEGER, status TEXT DEFAULT 'postat', poza_predare TEXT, poza_livrare TEXT, sofer_id INTEGER, data_postare TEXT)")
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print(f"DB init error: {e}")
+class Colet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    plecare = db.Column(db.String(100), nullable=False)
+    sosire = db.Column(db.String(100), nullable=False)
+    greutate = db.Column(db.Float)
+    dimensiuni = db.Column(db.String(50))
+    descriere = db.Column(db.Text)
+    pret = db.Column(db.Float)
+    status = db.Column(db.String(20), default='Caut sofer')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='colete')
 
-init_db()
+class Match(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ruta_id = db.Column(db.Integer, db.ForeignKey('ruta_sofer.id'))
+    colet_id = db.Column(db.Integer, db.ForeignKey('colet.id'))
+    status = db.Column(db.String(20), default='Nou') # Nou, Contactat, Livrat
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ruta = db.relationship('RutaSofer', backref='meciuri')
+    colet = db.relationship('Colet', backref='meciuri')
 
-class User(UserMixin):
-    def __init__(self, row):
-        self.id = row['id']
-        self.nume = row['nume']
-        self.telefon = row['telefon']
-        self.email = row['email']
-        self.poza = row['poza']
-        self.rol = row['rol']
-        self.rating = row['rating']
-        self.colete_duse = row['colete_duse']
+class Rating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    de_la_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    catre_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    match_id = db.Column(db.Integer, db.ForeignKey('match.id'))
+    stele = db.Column(db.Integer) # 1-5
+    recenzie = db.Column(db.Text)
+    rol = db.Column(db.String(20)) # sofer sau expeditor
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 @login_manager.user_loader
 def load_user(user_id):
-    try:
-        conn = get_db()
-        row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
-        conn.close()
-        if row:
-            return User(row)
-    except:
-        pass
-    return None
+    return User.query.get(int(user_id))
 
-def calc_pret(de_unde, pana_unde, tip):
-    if tip == 'plic':
+def calculeaza_pret(greutate, distanta_km=50):
+    if greutate and greutate < 1: # plic
         return 12
-    return 16 if de_unde.lower() != pana_unde.lower() else 10
+    pret = 10 + (distanta_km * 0.4)
+    return min(pret, 30)
 
-def allowed_file(f):
-    return '.' in f and f.rsplit('.',1)[1].lower() in ALLOWED_EXT
+def gaseste_matchuri():
+    """Creeaza match automat cand plecare/sosire se potrivesc"""
+    rute = RutaSofer.query.filter_by(activa=True).all()
+    colete = Colet.query.filter_by(status='Caut sofer').all()
+    count = 0
+    for ruta in rute:
+        for colet in colete:
+            # match simplu: plecare contine sau sosire contine (case-insensitive)
+            plecare_match = ruta.plecare.lower() in colet.plecare.lower() or colet.plecare.lower() in ruta.plecare.lower() or ruta.plecare.lower().split()[0] == colet.plecare.lower().split()[0]
+            sosire_match = ruta.sosire.lower() in colet.sosire.lower() or colet.sosire.lower() in ruta.sosire.lower() or ruta.sosire.lower().split()[0] == colet.sosire.lower().split()[0]
+            if plecare_match and sosire_match:
+                exista = Match.query.filter_by(ruta_id=ruta.id, colet_id=colet.id).first()
+                if not exista:
+                    m = Match(ruta_id=ruta.id, colet_id=colet.id)
+                    db.session.add(m)
+                    count += 1
+    if count>0:
+        db.session.commit()
+    return count
 
+# --- RUTE ---
 @app.route('/')
 def index():
-    try:
-        conn = get_db()
-        rute = conn.execute("SELECT r.*, u.nume FROM rute_sofer r JOIN users u ON r.user_id=u.id WHERE r.activa=1 ORDER BY r.id DESC LIMIT 6").fetchall()
-        colete = conn.execute("SELECT c.*, u.nume FROM colete c JOIN users u ON c.user_id=u.id WHERE c.status='postat' ORDER BY c.id DESC LIMIT 6").fetchall()
-        conn.close()
-    except:
-        rute, colete = [], []
-    return render_template('index.html', rute=rute, colete=colete)
+    rute_active = RutaSofer.query.filter_by(activa=True).order_by(RutaSofer.created_at.desc()).limit(6).all()
+    colete_active = Colet.query.filter_by(status='Caut sofer').order_by(Colet.created_at.desc()).limit(6).all()
+    gaseste_matchuri()
+    return render_template('index.html', rute=rute_active, colete=colete_active)
+
+@app.route('/despre')
+def despre(): return render_template('despre.html')
+
+@app.route('/termeni')
+def termeni(): return render_template('termeni.html')
+
+@app.route('/confidentialitate')
+def confidentialitate(): return render_template('confidentialitate.html')
+
+@app.route('/contact')
+def contact(): return render_template('contact.html')
+
+@app.route('/ads.txt')
+def ads_txt():
+    return Response("google.com, pub-3083295229846648, DIRECT, f08c47fec0942fa0", mimetype='text/plain')
 
 @app.route('/register', methods=['GET','POST'])
 def register():
-    if request.method == 'POST':
-        nume = request.form.get('nume','').strip()
-        telefon = request.form.get('telefon','').strip()
-        email = request.form.get('email','').strip() or None
-        parola = request.form.get('parola','')
-        rol = request.form.get('rol','ambele')
-        if not nume or not parola or (not telefon and not email):
-            flash("Completeaza numele, parola si telefon sau email.", "error")
-            return redirect(url_for('register'))
-        if telefon:
-            telefon = re.sub(r'\D','',telefon)
-        conn = get_db()
-        try:
-            exists = conn.execute("SELECT id FROM users WHERE telefon=? OR email=?", (telefon, email)).fetchone()
-            if exists:
-                flash("Telefonul sau emailul exista deja.", "error")
-                conn.close()
-                return redirect(url_for('register'))
-            conn.execute("INSERT INTO users (nume, telefon, email, parola_hash, rol, data_creare) VALUES (?,?,?,?,?,?)",
-                         (nume, telefon, email, generate_password_hash(parola), rol, datetime.now().isoformat()))
-            conn.commit()
-            row = conn.execute("SELECT * FROM users WHERE telefon=? OR email=?", (telefon, email)).fetchone()
-            conn.close()
-            login_user(User(row))
-            return redirect(url_for('dashboard'))
-        except Exception as e:
-            flash(f"Eroare: {e}", "error")
-            return redirect(url_for('register'))
+    if request.method=='POST':
+        email=request.form['email']; parola=request.form['parola']; nume=request.form['nume']; telefon=request.form['telefon']
+        if User.query.filter_by(email=email).first():
+            flash('Email deja folosit','error'); return redirect(url_for('register'))
+        user=User(email=email, parola=generate_password_hash(parola), nume=nume, telefon=telefon)
+        db.session.add(user); db.session.commit(); login_user(user); return redirect(url_for('dashboard'))
     return render_template('register.html')
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if request.method == 'POST':
-        identifier = request.form.get('identifier','').strip()
-        parola = request.form.get('parola','')
-        conn = get_db()
-        try:
-            if '@' not in identifier:
-                digits = re.sub(r'\D','',identifier)
-                row = conn.execute("SELECT * FROM users WHERE telefon LIKE ?", (f"%{digits}%",)).fetchone()
-                if not row:
-                    row = conn.execute("SELECT * FROM users WHERE email=?", (identifier,)).fetchone()
-            else:
-                row = conn.execute("SELECT * FROM users WHERE email=?", (identifier,)).fetchone()
-                if not row:
-                    row = conn.execute("SELECT * FROM users WHERE telefon=?", (identifier,)).fetchone()
-            conn.close()
-            if row and check_password_hash(row['parola_hash'], parola):
-                login_user(User(row))
-                return redirect(url_for('dashboard'))
-        except:
-            pass
-        flash("Date gresite.", "error")
-        return redirect(url_for('login'))
+    if request.method=='POST':
+        email=request.form['email']; parola=request.form['parola']
+        user=User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.parola, parola):
+            login_user(user); return redirect(url_for('dashboard'))
+        flash('Date gresite','error')
     return render_template('login.html')
 
 @app.route('/logout')
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
+def logout(): logout_user(); return redirect(url_for('index'))
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    conn = get_db()
-    my_rute = conn.execute("SELECT * FROM rute_sofer WHERE user_id=? ORDER BY id DESC", (current_user.id,)).fetchall()
-    my_colete = conn.execute("SELECT * FROM colete WHERE user_id=? ORDER BY id DESC", (current_user.id,)).fetchall()
-    matches_for_me = []
-    for ruta in my_rute:
-        if not ruta['activa']: continue
-        cms = conn.execute("SELECT c.*, u.nume, u.telefon FROM colete c JOIN users u ON c.user_id=u.id WHERE c.status='postat' AND c.user_id!=?", (current_user.id,)).fetchall()
-        for colet in cms:
-            de, pana = colet['de_unde'].lower(), colet['pana_unde'].lower()
-            rd, rp = ruta['de_unde'].lower(), ruta['pana_unde'].lower()
-            if de in rd or de in rp or pana in rd or pana in rp or rd in de or rp in pana:
-                matches_for_me.append({'ruta': ruta, 'colet': colet})
-    soferi_for_my_colete = []
-    for colet in my_colete:
-        if colet['status'] != 'postat': continue
-        rms = conn.execute("SELECT r.*, u.nume, u.telefon FROM rute_sofer r JOIN users u ON r.user_id=u.id WHERE r.activa=1 AND r.user_id!=?", (current_user.id,)).fetchall()
-        for ruta in rms:
-            de, pana = colet['de_unde'].lower(), colet['pana_unde'].lower()
-            rd, rp = ruta['de_unde'].lower(), ruta['pana_unde'].lower()
-            if de in rd or de in rp or pana in rd or pana in rp:
-                soferi_for_my_colete.append({'colet': colet, 'ruta': ruta})
-    conn.close()
-    return render_template('dashboard.html', my_rute=my_rute, my_colete=my_colete, matches_for_me=matches_for_me, soferi_for_my_colete=soferi_for_my_colete)
-
-@app.route('/profil', methods=['GET','POST'])
-@login_required
-def profil():
-    conn = get_db()
-    if request.method == 'POST':
-        nume = request.form.get('nume','').strip()
-        telefon = request.form.get('telefon','').strip()
-        email = request.form.get('email','').strip() or None
-        parola_noua = request.form.get('parola_noua','').strip()
-        poza_path = None
-        if 'poza' in request.files:
-            f = request.files['poza']
-            if f and f.filename and allowed_file(f.filename):
-                fn = secure_filename(f"user_{current_user.id}_{secrets.token_hex(4)}.{f.filename.rsplit('.',1)[1].lower()}")
-                f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
-                poza_path = f"uploads/{fn}"
-        if poza_path:
-            conn.execute("UPDATE users SET nume=?, telefon=?, email=?, poza=? WHERE id=?", (nume, telefon, email, poza_path, current_user.id))
-        else:
-            conn.execute("UPDATE users SET nume=?, telefon=?, email=? WHERE id=?", (nume, telefon, email, current_user.id))
-        if parola_noua:
-            conn.execute("UPDATE users SET parola_hash=? WHERE id=?", (generate_password_hash(parola_noua), current_user.id))
-        conn.commit()
-        conn.close()
-        flash("Profil actualizat!", "success")
-        return redirect(url_for('profil'))
-    user_row = conn.execute("SELECT * FROM users WHERE id=?", (current_user.id,)).fetchone()
-    conn.close()
-    return render_template('profil.html', user=user_row)
+    gaseste_matchuri()
+    my_rute=RutaSofer.query.filter_by(user_id=current_user.id).order_by(RutaSofer.created_at.desc()).all()
+    my_colete=Colet.query.filter_by(user_id=current_user.id).order_by(Colet.created_at.desc()).all()
+    # match-uri unde eu sunt sofer sau expeditor
+    my_matches=Match.query.join(RutaSofer).join(Colet).filter((RutaSofer.user_id==current_user.id) | (Colet.user_id==current_user.id)).order_by(Match.created_at.desc()).all()
+    return render_template('dashboard.html', my_rute=my_rute, my_colete=my_colete, my_matches=my_matches)
 
 @app.route('/sofer', methods=['GET','POST'])
 @login_required
 def sofer():
-    if request.method == 'POST':
-        conn = get_db()
-        conn.execute("INSERT INTO rute_sofer (user_id, de_unde, pana_unde, data_ruta, ora, locuri, detalii) VALUES (?,?,?,?,?,?,?)",
-                     (current_user.id, request.form.get('de_unde',''), request.form.get('pana_unde',''), request.form.get('data_ruta',''), request.form.get('ora',''), request.form.get('locuri','1'), request.form.get('detalii','')))
-        conn.commit()
-        conn.close()
-        flash("Ruta adaugata!", "success")
-        return redirect(url_for('dashboard'))
+    if request.method=='POST':
+        plecare=request.form['plecare']; sosire=request.form['sosire']; data_ruta=request.form['data_ruta']; ora=request.form['ora']; locuri=request.form.get('locuri',3); detalii=request.form.get('detalii','')
+        r=RutaSofer(user_id=current_user.id, plecare=plecare, sosire=sosire, data_ruta=data_ruta, ora=ora, locuri=locuri, detalii=detalii)
+        db.session.add(r); db.session.commit(); gaseste_matchuri(); flash('Ruta adaugata! Am cautat colete care se potrivesc.','success'); return redirect(url_for('dashboard'))
     return render_template('sofer.html')
 
 @app.route('/colet', methods=['GET','POST'])
 @login_required
 def colet():
-    if request.method == 'POST':
-        pret = calc_pret(request.form.get('de_unde',''), request.form.get('pana_unde',''), request.form.get('tip','colet'))
-        if request.form.get('tip','colet') == 'colet':
-            pret = min(30, max(10, pret))
-        conn = get_db()
-        conn.execute("INSERT INTO colete (user_id, de_unde, pana_unde, ce_contine, tip, greutate, telefon_contact, pret, data_postare) VALUES (?,?,?,?,?,?,?,?,?)",
-                     (current_user.id, request.form.get('de_unde',''), request.form.get('pana_unde',''), request.form.get('ce_contine',''), request.form.get('tip','colet'), request.form.get('greutate',''), request.form.get('telefon_contact',''), pret, datetime.now().isoformat()))
-        conn.commit()
-        conn.close()
-        flash(f"Colet postat! {pret} lei.", "success")
-        return redirect(url_for('dashboard'))
+    if request.method=='POST':
+        plecare=request.form['plecare']; sosire=request.form['sosire']; greutate=float(request.form.get('greutate',2) or 2); descriere=request.form.get('descriere','')
+        pret=calculeaza_pret(greutate)
+        c=Colet(user_id=current_user.id, plecare=plecare, sosire=sosire, greutate=greutate, descriere=descriere, pret=pret)
+        db.session.add(c); db.session.commit(); gaseste_matchuri(); flash(f'Colet adaugat! Pret: {pret} lei. Am cautat soferi!','success'); return redirect(url_for('dashboard'))
     return render_template('colet.html')
 
-@app.route('/admin')
-def admin():
-    if not current_user.is_authenticated or 'razvan' not in current_user.nume.lower():
-        return "Nu ai acces", 403
-    conn = get_db()
-    users = conn.execute("SELECT * FROM users ORDER BY id DESC").fetchall()
-    rute = conn.execute("SELECT r.*, u.nume FROM rute_sofer r JOIN users u ON r.user_id=u.id ORDER BY r.id DESC").fetchall()
-    colete = conn.execute("SELECT c.*, u.nume FROM colete c JOIN users u ON c.user_id=u.id ORDER BY c.id DESC").fetchall()
-    conn.close()
-    return render_template('admin.html', users=users, rute=rute, colete=colete)
+@app.route('/match/<int:match_id>/contact')
+@login_required
+def match_contact(match_id):
+    m=Match.query.get_or_404(match_id)
+    # verifica ca esti parte din match
+    if m.ruta.user_id!=current_user.id and m.colet.user_id!=current_user.id:
+        flash('Nu ai acces','error'); return redirect(url_for('dashboard'))
+    # determina telefonul celuilalt
+    if m.ruta.user_id==current_user.id:
+        other_phone=m.colet.user.telefon
+        other_name=m.colet.user.nume
+        text=f"Salut {other_name}! Sunt sofer pe e-ftin.ro, ruta {m.ruta.plecare}->{m.ruta.sosire}. Am vazut coletul tau {m.colet.plecare}->{m.colet.sosire}. Mai e valabil?"
+    else:
+        other_phone=m.ruta.user.telefon
+        other_name=m.ruta.user.nume
+        text=f"Salut {other_name}! Am colet {m.colet.plecare}->{m.colet.sosire} pe e-ftin.ro. Am vazut ruta ta {m.ruta.plecare}->{m.ruta.sosire}. Ma poti ajuta?"
+    m.status='Contactat'; db.session.commit()
+    import urllib.parse
+    wa_link=f"https://wa.me/{other_phone.replace('+','').replace(' ','')}?text={urllib.parse.quote(text)}"
+    return redirect(wa_link)
 
-@app.errorhandler(500)
-def err500(e):
-    return f"<h1>500 - Eroare temporara</h1><p>{e}</p><p><a href='/'>Acasa</a></p>", 500
+@app.route('/match/<int:match_id>/livrat', methods=['POST'])
+@login_required
+def match_livrat(match_id):
+    m=Match.query.get_or_404(match_id)
+    m.status='Livrat'
+    # update status colet
+    m.colet.status='Livrat'
+    db.session.commit()
+    flash('Marcat ca livrat! Acum poti lasa rating.','success')
+    return redirect(url_for('rating_page', match_id=match_id))
 
-if __name__ == '__main__':
+@app.route('/rating/<int:match_id>', methods=['GET','POST'])
+@login_required
+def rating_page(match_id):
+    m=Match.query.get_or_404(match_id)
+    if request.method=='POST':
+        stele=int(request.form['stele']); recenzie=request.form.get('recenzie','')
+        # catre cine dau rating?
+        if m.ruta.user_id==current_user.id:
+            catre=m.colet.user_id
+            rol='expeditor'
+        else:
+            catre=m.ruta.user_id
+            rol='sofer'
+        r=Rating(de_la_user=current_user.id, catre_user=catre, match_id=match_id, stele=stele, recenzie=recenzie, rol=rol)
+        db.session.add(r)
+        # recalculeaza media
+        toate=Rating.query.filter_by(catre_user=catre).all()
+        media=sum([x.stele for x in toate]+[stele])/(len(toate)+1)
+        user=User.query.get(catre)
+        user.rating_mediu=media
+        user.nr_recenzii=len(toate)+1
+        db.session.commit()
+        flash('Rating trimis! Multumim!','success')
+        return redirect(url_for('dashboard'))
+    return render_template('rating.html', match=m)
+
+with app.app_context():
+    db.create_all()
+
+if __name__=='__main__':
     app.run(debug=True)
