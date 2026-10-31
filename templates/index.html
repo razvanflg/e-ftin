@@ -9,9 +9,10 @@
 </div>
 </div>
 
-<!-- BANNER TOP - DEASUPRA BUTOANELOR - ZONA 12158482 -->
-<div style="margin:16px 0;text-align:center;min-height:90px;background:#fff;border-radius:12px;padding:8px">
-<script>(function(s){s.dataset.zone='12158482',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- CHENAR RECLAMA TOP - DEASUPRA BUTOANELOR - GATA PENTRU BANNER NORMAL -->
+<div class="ad-box">
+  <!-- Aici pui mai tarziu codul de Banner normal, NU In-Page Push -->
+  Spatiu reclama 728x90 - Top
 </div>
 
 <div style="text-align:center;margin:16px 0">
@@ -20,8 +21,8 @@
 <a href="/colet" class="btn btn-outline">Cere transport ieftin</a>
 </div>
 <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-<a href="https://https://revolut.me/razvanw43l" target="_blank" class="btn-【entity-revolut¦canonical_name=Revolut】">💸 Sustine e-ftin.ro - 3 lei pe 【entity-Revolut¦canonical_name=Revolut】</a>
-<button id="installButtonMain" style="display:none" class="btn-【entity-revolut¦canonical_name=Revolut】">📲 Instaleaza aplicatia</button>
+<a href="https://revolut.me/razvanw43l" target="_blank" class="btn-revolut">💸 Sustine e-ftin.ro - 3 lei pe Revolut</a>
+<button id="installButtonMain" style="display:none" class="btn-revolut" style="background:#fff;color:#000">📲 Instaleaza aplicatia</button>
 </div>
 </div>
 
@@ -29,10 +30,6 @@
 <div class="card">
 <h3>🚐 Cum functioneaza?</h3>
 <p><b>Sofer:</b> Iti pui ruta.<br><b>Client:</b> Posteaza coletul.<br><b>Platforma:</b> Va conecteaza pe WhatsApp direct.</p>
-{% if rute %}
-<h4>Rute azi:</h4>
-{% for r in rute %}<div class="card match"><b>{{r['de_unde']}} → {{r['pana_unde']}}</b><br>{{r['nume']}} - {{r['ora']}}</div>{% endfor %}
-{% endif %}
 </div>
 <div class="card">
 <h3>💰 Cat costa?</h3>
@@ -46,16 +43,12 @@
 <div class="card">
 <h3>🇷🇴 Unde functioneaza?</h3>
 <p>Toata Romania, 41 judete. Ideal sate fara easybox: Statioara, Baleni, Ulmi, Corbii Mari, Racari, Potlogi etc.</p>
-{% if colete %}
-<h4>Colete azi:</h4>
-{% for c in colete %}<div class="card match"><b>{{c['de_unde']}} → {{c['pana_unde']}}</b> - {{c['pret']}} lei<br>{{c['nume']}}</div>{% endfor %}
-{% endif %}
 </div>
 </div>
 
-<!-- BANNER BOTTOM - JOS PE PRIMA PAGINA - ZONA 12158490 -->
-<div style="margin-top:24px;text-align:center;min-height:90px;background:#fff;border-radius:12px;padding:8px">
-<script>(function(s){s.dataset.zone='12158490',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- CHENAR RECLAMA BOTTOM - JOS PE PRIMA PAGINA -->
+<div class="ad-box" style="margin-top:24px">
+  Spatiu reclama 300x250 - Bottom
 </div>
 
 <script>document.addEventListener('DOMContentLoaded',()=>{const mainBtn=document.getElementById('installButtonMain');if(mainBtn){window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();window.deferredPrompt=e;mainBtn.style.display='inline-flex';});mainBtn.addEventListener('click',()=>{if(window.deferredPrompt){window.deferredPrompt.prompt();}});}});</script>
