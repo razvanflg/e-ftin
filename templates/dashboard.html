@@ -2,8 +2,8 @@
 <h2>Salut, {{current_user.nume}}! 👋</h2>
 
 <div class="card" style="background:#f0fdf4;border:1px dashed #16a34a;text-align:center">
-<p style="margin:0 0 8px 0">💚 Iti place e-ftin.ro? Ajuta platforma sa ramana gratis si ieftina!</p>
-<a href="https://https://revolut.me/razvanw43l" target="_blank" class="btn-revolut">💸 Bacșiș 3 lei pe Revolut</a>
+<p style="margin:0 0 8px 0">💚 Iti place e-ftin.ro? Ajuta platforma sa ramana gratis!</p>
+<a href="https://revolut.me/razvanw43l" target="_blank" class="btn-revolut">💸 Bacșiș 3 lei pe Revolut</a>
 </div>
 
 <div class="grid">
@@ -13,56 +13,28 @@
 {% for r in my_rute %}
 <div class="card match">
 <b>{{r['de_unde']}} → {{r['pana_unde']}}</b><br>
-📅 {{r['data_ruta']}} 🕗 {{r['ora']}} - {{r['locuri']}} locuri<br>
-<small>{{r['detalii']}}</small><br>
-{% if r['activa'] %}<span style="color:green">● Activa</span>{% else %}Inactiva{% endif %}
+📅 {{r['data_ruta']}} 🕗 {{r['ora']}} - {{r['locuri']}} locuri
 </div>
 {% else %}
 <p>Nu ai rute inca.</p>
 {% endfor %}
-
-<h3 style="margin-top:24px">📦 Colete care se potrivesc pe rutele tale ({{matches_for_me|length}})</h3>
-{% for m in matches_for_me %}
-<div class="card match">
-<b>MATCH!</b> Ruta ta {{m['ruta']['de_unde']}}→{{m['ruta']['pana_unde']}} se potriveste cu coletul:<br>
-<b>{{m['colet']['de_unde']}} → {{m['colet']['pana_unde']}}</b> - {{m['colet']['pret']}} lei<br>
-{{m['colet']['ce_contine']}} - Client: {{m['colet']['nume']}}<br>
-<a class="btn" href="https://wa.me/{{m['colet']['telefon_contact']|replace('+','')|replace(' ','')}}?text=Salut%2C%20sunt%20sofer%20e-ftin">💬 Scrie pe WhatsApp</a>
 </div>
-{% else %}
-<p>Niciun colet pe rutele tale momentan.</p>
-{% endfor %}
-</div>
-
 <div>
-<h3>📦 Coletele mele trimise ({{my_colete|length}})</h3>
+<h3>📦 Coletele mele ({{my_colete|length}})</h3>
 <a href="/colet" class="btn btn-outline">+ Posteaza colet nou</a>
 {% for c in my_colete %}
 <div class="card match">
-<b>{{c['de_unde']}} → {{c['pana_unde']}}</b> - {{c['pret']}} lei - {{c['status']}}<br>
-{{c['ce_contine']}}
+<b>{{c['de_unde']}} → {{c['pana_unde']}}</b> - {{c['pret']}} lei - {{c['status']}}
 </div>
 {% else %}
 <p>Nu ai postat colete inca.</p>
 {% endfor %}
-
-<h3 style="margin-top:24px">🚗 Soferi disponibili pentru coletele tale ({{soferi_for_my_colete|length}})</h3>
-{% for s in soferi_for_my_colete %}
-<div class="card match">
-<b>Sofer gasit!</b> Pentru coletul tau {{s['colet']['de_unde']}}→{{s['colet']['pana_unde']}}:<br>
-<b>{{s['ruta']['de_unde']}} → {{s['ruta']['pana_unde']}}</b> - {{s['ruta']['nume']}} - {{s['ruta']['ora']}}<br>
-<a class="btn" href="https://wa.me/{{s['ruta']['telefon']|replace('+','')|replace(' ','')}}?text=Salut%2C%20am%20colet">💬 Contacteaza soferul</a>
-</div>
-{% else %}
-<p>Niciun sofer pe rutele tale acum.</p>
-{% endfor %}
 </div>
 </div>
 
-<!-- BANNER BOTTOM DASHBOARD - ZONA 12158490 - AICI ERA POZA TA -->
-<div style="margin-top:24px;text-align:center;min-height:90px;background:#fff;border-radius:12px;padding:8px">
-<script>(function(s){s.dataset.zone='12158490',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-<br><small style="font-size:10px;color:#16a34a">Banner jos Dashboard - din poza ta 17.07.36</small>
+<!-- CHENAR RECLAMA DASHBOARD - JOS -->
+<div class="ad-box" style="margin-top:24px">
+  Spatiu reclama 300x250 - Dashboard Bottom
 </div>
 
 {% endblock %}
