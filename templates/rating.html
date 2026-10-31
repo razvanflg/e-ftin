@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h2>⭐ Lasă rating pentru Match #{{match.id}}</h2><p>Șofer: {{match.ruta.user.nume}} - Colet: {{match.colet.user.nume}}</p><form method="POST"><label>Stele (1-5):</label><select name="stele" required><option value="5">⭐⭐⭐⭐⭐ - Excelent</option><option value="4">⭐⭐⭐⭐ - Bun</option><option value="3">⭐⭐⭐ - Ok</option><option value="2">⭐⭐ - Slab</option><option value="1">⭐ - Foarte slab</option></select><label>Recenzie (opțional):</label><textarea name="recenzie" placeholder="Cum a fost transportul?"></textarea><button class="btn">Trimite rating</button></form></div>
+{% endblock %}
