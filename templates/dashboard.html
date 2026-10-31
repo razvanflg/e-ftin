@@ -1,40 +1,39 @@
 {% extends "base.html" %}{% block content %}
-<h2>Salut, {{current_user.nume}}! 👋</h2>
+<h2>Salut, {{current_user.nume}}! 👋 ⭐ {{'%.1f'|format(current_user.rating_mediu)}} ({{current_user.nr_recenzii}} recenzii)</h2>
 
-<div class="card" style="background:#f0fdf4;border:1px dashed #16a34a;text-align:center">
-<p style="margin:0 0 8px 0">💚 Iti place e-ftin.ro? Ajuta platforma sa ramana gratis!</p>
-<a href="https://revolut.me/razvanw43l" target="_blank" class="btn-revolut">💸 Bacșiș 3 lei pe Revolut</a>
+<div class="card" style="background:#f0fdf4;text-align:center"><a href="https://revolut.me/razvanw43l" target="_blank" class="btn-revolut">💸 Susține 3 lei</a></div>
+
+<h3>🔥 Match-urile mele ({{my_matches|length}}) - Aici se întâmplă magia!</h3>
+{% for m in my_matches %}
+<div class="card match" style="border-left-color:{% if m.status=='Livrat' %}#16a34a{% elif m.status=='Contactat' %}#f59e0b{% else %}#ef4444{% endif %}">
+<b>MATCH #{{m.id}} - {{m.status}}</b><br>
+🚐 Șofer: {{m.ruta.plecare}} → {{m.ruta.sosire}} ({{m.ruta.user.nume}} - {{m.ruta.user.telefon}})<br>
+📦 Colet: {{m.colet.plecare}} → {{m.colet.sosire}} - {{m.colet.pret}} lei ({{m.colet.user.nume}} - {{m.colet.user.telefon}})<br>
+<div style="display:flex;gap:8px;margin-top:8px">
+<a href="/match/{{m.id}}/contact" class="btn">💬 Deschide WhatsApp</a>
+{% if m.status!='Livrat' %}
+<form method="POST" action="/match/{{m.id}}/livrat" style="display:inline"><button class="btn btn-outline">✅ Marchează livrat</button></form>
+{% else %}
+<a href="/rating/{{m.id}}" class="btn btn-outline">⭐ Lasă rating</a>
+{% endif %}
 </div>
-
-<div class="grid">
-<div>
-<h3>🚐 Rutele mele ({{my_rute|length}})</h3>
-<a href="/sofer" class="btn">+ Adauga ruta noua</a>
-{% for r in my_rute %}
-<div class="card match">
-<b>{{r['de_unde']}} → {{r['pana_unde']}}</b><br>
-📅 {{r['data_ruta']}} 🕗 {{r['ora']}} - {{r['locuri']}} locuri
 </div>
 {% else %}
-<p>Nu ai rute inca.</p>
+<p>Niciun match încă. Pune o rută și un colet pe același traseu (ex: Rm Vâlcea → București) și o să apară aici!</p>
 {% endfor %}
+
+<div class="grid" style="margin-top:24px">
+<div>
+<h3>🚐 Rutele mele ({{my_rute|length}})</h3>
+<a href="/sofer" class="btn">+ Adaugă rută</a>
+{% for r in my_rute %}<div class="card match"><b>{{r.plecare}} → {{r.sosire}}</b><br>{{r.data_ruta}} {{r.ora}} - {{'Activa' if r.activa else 'Inactiva'}}</div>{% endfor %}
 </div>
 <div>
 <h3>📦 Coletele mele ({{my_colete|length}})</h3>
-<a href="/colet" class="btn btn-outline">+ Posteaza colet nou</a>
-{% for c in my_colete %}
-<div class="card match">
-<b>{{c['de_unde']}} → {{c['pana_unde']}}</b> - {{c['pret']}} lei - {{c['status']}}
-</div>
-{% else %}
-<p>Nu ai postat colete inca.</p>
-{% endfor %}
+<a href="/colet" class="btn btn-outline">+ Postează colet</a>
+{% for c in my_colete %}<div class="card match"><b>{{c.plecare}} → {{c.sosire}}</b> - {{c.pret}} lei - {{c.status}}</div>{% endfor %}
 </div>
 </div>
 
-<!-- CHENAR RECLAMA DASHBOARD - JOS -->
-<div class="ad-box" style="margin-top:24px">
-  Spatiu reclama 300x250 - Dashboard Bottom
-</div>
-
+<div class="ad-box" style="margin-top:24px">Spațiu reclamă Dashboard - AdSense</div>
 {% endblock %}
