@@ -1,40 +1,47 @@
 {% extends "base.html" %}{% block content %}
 <div style="text-align:center;padding:24px 0">
-<h1 style="font-size:32px;margin:8px 0">Colete mici, <span style="color:#16a34a">pe drumul tau.</span></h1>
-<p>Max 5kg, 60x40x40cm, fara abatere. Mai ieftin decat curierul.</p>
-<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">
-<span style="background:#f0fdf4;padding:6px 10px;border-radius:999px">10 lei + 0,40 lei/km - max 30 lei</span>
-<span style="background:#f0fdf4;padding:6px 10px;border-radius:999px">Plic 12 lei fix</span>
-<span style="background:#f0fdf4;padding:6px 10px;border-radius:999px">💚 100% soferului</span>
-</div>
+<h1 style="font-size:32px">Colete mici, <span style="color:#16a34a">pe drumul tău.</span></h1>
+<p>Max 5kg, fără abatere. Mai ieftin decât curierul. 100% șoferului.</p>
 </div>
 
-<div class="ad-box">Spatiu reclama 728x90 - Top - AdSense va aparea aici dupa aprobare</div>
+<div class="ad-box">Spațiu reclamă 728x90 - Top - AdSense</div>
 
-<div style="text-align:center;margin:16px 0">
-<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-<a href="/sofer" class="btn">Pune-ti ruta gratis</a>
+<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0">
+<a href="/sofer" class="btn">Pune-ți ruta gratis</a>
 <a href="/colet" class="btn btn-outline">Cere transport ieftin</a>
-</div>
-<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-<a href="https://revolut.me/razvanw43l" target="_blank" class="btn-【entity-revolut¦canonical_name=Revolut】">💸 Sustine e-ftin.ro - 3 lei pe 【entity-Revolut¦canonical_name=Revolut】</a>
-<button id="installButtonMain" style="display:none" class="btn-【entity-revolut¦canonical_name=Revolut】" style="background:#fff;color:#000">📲 Instaleaza aplicatia</button>
-</div>
+<a href="https://revolut.me/razvanw43l" target="_blank" class="btn-revolut">💸 Susține 3 lei</a>
 </div>
 
 <div class="grid">
 <div class="card">
-<h3>🚐 Cum functioneaza?</h3>
-<p><b>Sofer:</b> Iti pui ruta.<br><b>Client:</b> Posteaza coletul.<br><b>Platforma:</b> Va conecteaza pe WhatsApp direct.</p>
+<h3>🚐 Curse active de la șoferi ({{rute|length}})</h3>
+{% for r in rute %}
+<div class="card match">
+<b>{{r.plecare}} → {{r.sosire}}</b><br>
+📅 {{r.data_ruta}} 🕗 {{r.ora}} - {{r.locuri}} locuri<br>
+👤 {{r.user.nume}} - ⭐ {{'%.1f'|format(r.user.rating_mediu)}} ({{r.user.nr_recenzii}})<br>
+<small>{{r.detalii}}</small><br>
+<a href="/dashboard" class="btn" style="margin-top:6px;padding:6px 10px;font-size:12px">Vezi detalii & Contactează</a>
 </div>
+{% else %}
+<p>Nicio cursă azi. Fii primul!</p>
+{% endfor %}
+</div>
+
 <div class="card">
-<h3>💰 Cat costa?</h3>
-<p style="font-size:24px;color:#16a34a;font-weight:800">12-30 lei</p>
-<p>Plic: 12 lei fix<br>Colet: 10 lei + 0.4 lei/km max 30 lei</p>
+<h3>📦 Colete de trimis ({{colete|length}})</h3>
+{% for c in colete %}
+<div class="card match">
+<b>{{c.plecare}} → {{c.sosire}}</b> - {{c.pret}} lei<br>
+{{c.greutate}}kg - {{c.descriere}}<br>
+👤 {{c.user.nume}} - ⭐ {{'%.1f'|format(c.user.rating_mediu)}} ({{c.user.nr_recenzii}})<br>
+<a href="/dashboard" class="btn btn-outline" style="margin-top:6px;padding:6px 10px;font-size:12px">Oferă transport</a>
+</div>
+{% else %}
+<p>Niciun colet azi. Fii primul!</p>
+{% endfor %}
 </div>
 </div>
 
-<div class="ad-box" style="margin-top:24px">Spatiu reclama 300x250 - Bottom - AdSense va aparea aici dupa aprobare</div>
-
-<script>document.addEventListener('DOMContentLoaded',()=>{const mainBtn=document.getElementById('installButtonMain');if(mainBtn){window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();window.deferredPrompt=e;mainBtn.style.display='inline-flex';});mainBtn.addEventListener('click',()=>{if(window.deferredPrompt){window.deferredPrompt.prompt();}});}});</script>
+<div class="ad-box" style="margin-top:24px">Spațiu reclamă 300x250 - Bottom - AdSense</div>
 {% endblock %}
