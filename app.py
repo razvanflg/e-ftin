@@ -4,11 +4,17 @@ from flask import Flask, render_template, request, redirect, url_for, flash, Res
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'e-ftin-secret-2024')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eftin.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+ALLOWED_EXTENSIONS = {'png','jpg','jpeg','gif'}
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -19,12 +25,14 @@ class User(UserMixin, db.Model):
     parola = db.Column(db.String(200), nullable=False)
     nume = db.Column(db.String(80))
     telefon = db.Column(db.String(20))
+    poza = db.Column(db.String(200), default='')
 
 class RutaSofer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     plecare = db.Column(db.String(100), nullable=False)
     sosire = db.Column(db.String(100), nullable=False)
+    traseu = db.Column(db.Text, default='')  # orașe intermediare
     data_ruta = db.Column(db.String(20))
     ora = db.Column(db.String(20))
     locuri = db.Column(db.Integer, default=3)
@@ -61,18 +69,30 @@ def load_user(user_id):
 def calculeaza_pret(greutate):
     return 12 if greutate and greutate < 1 else 20
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+
 def gaseste_matchuri():
     try:
         rute = RutaSofer.query.filter_by(activa=True).all()
         colete = Colet.query.filter_by(status='Caut sofer').all()
-        count = 0
+        count=0
         for ruta in rute:
+            # lista orașe rută: plecare + traseu + sosire
+            orase_ruta = [ruta.plecare.lower()] + [x.strip().lower() for x in (ruta.traseu or '').split(',') if x.strip()] + [ruta.sosire.lower()]
             for colet in colete:
-                if ruta.plecare.lower()[:5] in colet.plecare.lower() or colet.plecare.lower()[:5] in ruta.plecare.lower():
-                    if ruta.sosire.lower()[:5] in colet.sosire.lower() or colet.sosire.lower()[:5] in ruta.sosire.lower():
-                        if not Match.query.filter_by(ruta_id=ruta.id, colet_id=colet.id).first():
-                            db.session.add(Match(ruta_id=ruta.id, colet_id=colet.id))
-                            count += 1
+                plecare_colet = colet.plecare.lower()
+                sosire_colet = colet.sosire.lower()
+                # match dacă plecarea și sosirea coletului sunt în traseul șoferului
+                def in_traseu(city):
+                    for o in orase_ruta:
+                        if city[:4] in o or o[:4] in city:
+                            return True
+                    return False
+                if in_traseu(plecare_colet) and in_traseu(sosire_colet):
+                    if not Match.query.filter_by(ruta_id=ruta.id, colet_id=colet.id).first():
+                        db.session.add(Match(ruta_id=ruta.id, colet_id=colet.id))
+                        count+=1
         if count>0: db.session.commit()
     except: pass
 
@@ -92,6 +112,27 @@ def confidentialitate(): return render_template('confidentialitate.html')
 def contact(): return render_template('contact.html')
 @app.route('/ads.txt')
 def ads_txt(): return Response("google.com, pub-3083295229846648, DIRECT, f08c47fec0942fa0", mimetype='text/plain')
+
+@app.route('/profil', methods=['GET','POST'])
+@login_required
+def profil():
+    if request.method=='POST':
+        nume=request.form.get('nume'); telefon=request.form.get('telefon'); parola_noua=request.form.get('parola_noua')
+        if nume: current_user.nume=nume
+        if telefon: current_user.telefon=telefon
+        if parola_noua: current_user.parola=generate_password_hash(parola_noua)
+        if 'poza' in request.files:
+            file=request.files['poza']
+            if file and file.filename!='' and allowed_file(file.filename):
+                filename=secure_filename(f"user_{current_user.id}_{file.filename}")
+                filepath=os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                current_user.poza=f"/static/uploads/{filename}"
+        db.session.commit()
+        flash('Profil actualizat!','success')
+        return redirect(url_for('profil'))
+    return render_template('profil.html')
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method=='POST':
@@ -126,7 +167,7 @@ def dashboard():
 @login_required
 def sofer():
     if request.method=='POST':
-        r=RutaSofer(user_id=current_user.id, plecare=request.form['plecare'], sosire=request.form['sosire'], data_ruta=request.form['data_ruta'], ora=request.form['ora'], locuri=request.form.get('locuri',3), detalii=request.form.get('detalii',''))
+        r=RutaSofer(user_id=current_user.id, plecare=request.form['plecare'], sosire=request.form['sosire'], traseu=request.form.get('traseu',''), data_ruta=request.form['data_ruta'], ora=request.form['ora'], locuri=request.form.get('locuri',3), detalii=request.form.get('detalii',''))
         db.session.add(r); db.session.commit(); gaseste_matchuri(); flash('Ruta adaugata!','success'); return redirect(url_for('dashboard'))
     return render_template('sofer.html')
 @app.route('/colet', methods=['GET','POST'])
